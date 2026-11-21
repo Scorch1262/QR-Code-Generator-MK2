@@ -1,0 +1,70 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Abhaengigkeiten installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller==6.22.3
+
+      - name: Version auslesen
+        id: ver
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path qr_generator.py -Pattern '^APP_VERSION = "(.+)"').Matches[0].Groups[1].Value
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: EXE bauen (PyInstaller)
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name QR-Code-Generator-MK2
+          --icon assets/icon.ico
+          --add-data "assets/icon.ico;assets"
+          --exclude-module PySide6.QtQuick
+          --exclude-module PySide6.QtQml
+          --exclude-module tkinter
+          qr_generator.py
+
+      - name: ZIP packen
+        shell: pwsh
+        run: |
+          $name = "QR-Code-Generator-MK2-v${{ steps.ver.outputs.version }}-windows"
+          New-Item -ItemType Directory -Force -Path "release/$name" | Out-Null
+          Copy-Item dist/QR-Code-Generator-MK2.exe "release/$name/"
+          Copy-Item README.md "release/$name/"
+          Compress-Archive -Path "release/$name" -DestinationPath "release/$name.zip" -Force
+          # Offline-Build-Kit zusaetzlich als eigene ZIP
+          Compress-Archive -Path offline_build_kit -DestinationPath "release/QR-Code-Generator-MK2-offline-build-kit-v${{ steps.ver.outputs.version }}.zip" -Force
+
+      - name: Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: QR-Code-Generator-MK2-v${{ steps.ver.outputs.version }}-windows
+          path: release/*.zip
+
+      - name: GitHub-Release (bei Tag v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip

@@ -1,2 +1,3 @@
-PySide6>=6.6
-segno>=1.6
+# Feste Versionen – identisch im GitHub-Actions-Build und im Offline-Build-Kit
+PySide6-Essentials==6.12.0
+segno==1.6.6

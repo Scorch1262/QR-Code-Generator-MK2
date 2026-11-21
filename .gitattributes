@@ -1,0 +1,3 @@
+# Zeilenenden fuer das Offline-Build-Kit festlegen
+*.bat text eol=crlf
+*.sh  text eol=lf

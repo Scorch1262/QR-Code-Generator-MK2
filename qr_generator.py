@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-QR-Code-Generator-MK1
+QR-Code-Generator-MK2
 Desktop-Programm (PySide6) zum Erzeugen moeglichst grober QR-Codes.
 "Grob" heisst: kleinstmoegliche QR-Version (= wenigste Module), damit jedes
 Modul bei gleicher Ausgabegroesse so gross wie moeglich wird.
@@ -23,8 +23,8 @@ from PySide6.QtWidgets import (
     QFrame, QFileDialog, QColorDialog, QMessageBox, QSizePolicy,
 )
 
-APP_NAME = "QR-Code-Generator-MK1"
-APP_VERSION = "1.0.0"
+APP_NAME = "QR-Code-Generator-MK2"
+APP_VERSION = "2.0.0"
 
 # --------------------------------------------------------------------------
 # Farben im Stil der Dashboards (dunkel, Lattice-artig, Amber/Teal-Akzente)
@@ -164,7 +164,7 @@ def _arrow_files():
     import tempfile
     from PySide6.QtGui import QPolygonF
     from PySide6.QtCore import QPointF
-    d = os.path.join(tempfile.gettempdir(), "qr_generator_mk1")
+    d = os.path.join(tempfile.gettempdir(), "qr_generator_mk2")
     os.makedirs(d, exist_ok=True)
     paths = {}
     for name, pts in (("up", [(1, 11), (8, 4), (15, 11)]),
@@ -328,7 +328,7 @@ def make_app_icon():
     pm = QPixmap(64, 64)
     pm.fill(QColor(C_BG))
     p = QPainter(pm)
-    qr = segno.make("MK1", error="L", micro=False)
+    qr = segno.make("MK2", error="L", micro=False)
     m = [list(r) for r in qr.matrix]
     s = 64 / len(m)
     p.setPen(Qt.NoPen)
@@ -405,7 +405,7 @@ class MainWindow(QMainWindow):
         t1.setObjectName("titleAccent")
         t2 = QLabel("GENERATOR")
         t2.setObjectName("title")
-        t3 = QLabel("MK1")
+        t3 = QLabel("MK2")
         t3.setObjectName("titleAccent")
         for w in (t1, t2, t3):
             lay.addWidget(w)
