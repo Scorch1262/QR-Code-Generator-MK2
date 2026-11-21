@@ -88,7 +88,7 @@ Das Kit liegt im Repo im Ordner `offline_build_kit/`. Es gibt zwei Wege:
 3. Ergebnis liegt in **`fertige_exe`**:
    ```
    fertige_exe/
-   └── QR-Code-Generator-MK2-v2.0.0-windows.exe
+   └── QR-Code-Generator-MK2-v2.0.1-windows.exe
    ```
 
 **Neue Projektversion später bauen:** neue `.zip` gegen die alte
@@ -100,9 +100,11 @@ wiederholt werden, solange sich die `requirements.txt` nicht ändert.
 
 ## exe benutzen
 
-Die exe ist eine einzelne Datei ohne Installation. Per Doppelklick
-starten — es öffnet sich direkt das Programmfenster (kein
-Konsolenfenster, kein Browser, kein Netzwerk-Port).
+Die exe ist **eine einzige Datei** ohne Installation und ohne
+nebenliegende Dateien — sie kann allein an jeden beliebigen Ort kopiert
+werden. Per Doppelklick starten — es öffnet sich direkt das
+Programmfenster (kein Konsolenfenster, kein Browser, kein Netzwerk-Port).
+Das Programm legt keine Konfigurations- oder Hilfsdateien an.
 
 ---
 

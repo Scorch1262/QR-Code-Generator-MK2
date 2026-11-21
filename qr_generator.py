@@ -12,7 +12,7 @@ import os
 import sys
 
 import segno
-from PySide6.QtCore import Qt, QTimer, QRectF, QMimeData
+from PySide6.QtCore import Qt, QTimer, QRectF, QMimeData, QResource
 from PySide6.QtGui import (
     QColor, QPainter, QImage, QIcon, QPixmap, QFont, QAction, QKeySequence,
     QDragEnterEvent, QDropEvent,
@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
 )
 
 APP_NAME = "QR-Code-Generator-MK2"
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.0.1"
 
 # --------------------------------------------------------------------------
 # Farben im Stil der Dashboards (dunkel, Lattice-artig, Amber/Teal-Akzente)
@@ -110,9 +110,11 @@ QSpinBox::up-button, QSpinBox::down-button {{
 QSpinBox::up-button {{ subcontrol-position: top right; border-top-right-radius: 4px; }}
 QSpinBox::down-button {{ subcontrol-position: bottom right; border-bottom-right-radius: 4px; }}
 QSpinBox::up-button:hover, QSpinBox::down-button:hover {{ background: {C_BORDER}; }}
-QSpinBox::up-arrow {{ image: url(ARROW_UP); width: 8px; height: 8px; }}
-QSpinBox::down-arrow {{ image: url(ARROW_DOWN); width: 8px; height: 8px; }}
-QComboBox::down-arrow {{ image: url(ARROW_DOWN); width: 9px; height: 9px; }}
+QSpinBox::up-arrow {{ image: url(:/mk2/arrow_up_teal.png); width: 8px; height: 8px; }}
+QSpinBox::down-arrow {{ image: url(:/mk2/arrow_down_teal.png); width: 8px; height: 8px; }}
+QSpinBox::up-arrow:disabled {{ image: url(:/mk2/arrow_up_muted.png); }}
+QSpinBox::down-arrow:disabled {{ image: url(:/mk2/arrow_down_muted.png); }}
+QComboBox::down-arrow {{ image: url(:/mk2/arrow_down_teal.png); width: 9px; height: 9px; }}
 QComboBox:hover, QSpinBox:hover {{ border: 1px solid {C_TEAL}; }}
 QComboBox::drop-down {{ border: none; width: 20px; }}
 QComboBox QAbstractItemView {{
@@ -159,33 +161,41 @@ QMessageBox {{ background: {C_PANEL}; }}
 ALNUM_CHARS = set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:")
 
 
-def _arrow_files():
-    """Erzeugt kleine Pfeil-PNGs (Teal) im Temp-Ordner fuer das Stylesheet."""
-    import tempfile
-    from PySide6.QtGui import QPolygonF
-    from PySide6.QtCore import QPointF
-    d = os.path.join(tempfile.gettempdir(), "qr_generator_mk2")
-    os.makedirs(d, exist_ok=True)
-    paths = {}
-    for name, pts in (("up", [(1, 11), (8, 4), (15, 11)]),
-                      ("down", [(1, 5), (8, 12), (15, 5)])):
-        img = QImage(16, 16, QImage.Format_ARGB32)
-        img.fill(Qt.transparent)
-        p = QPainter(img)
-        p.setRenderHint(QPainter.Antialiasing, True)
-        p.setPen(Qt.NoPen)
-        p.setBrush(QColor(C_TEAL))
-        p.drawPolygon(QPolygonF([QPointF(x, y) for x, y in pts]))
-        p.end()
-        fp = os.path.join(d, f"arrow_{name}.png")
-        img.save(fp, "PNG")
-        paths[name] = fp.replace("\\", "/")
-    return paths
+# Pfeil-Grafiken fuer SpinBox/ComboBox als eingebettete Qt-Ressource
+# (rcc-Binaerdaten, base64). Wird nur im Speicher registriert -
+# es werden KEINE Dateien neben der exe oder im Temp-Ordner angelegt.
+_RCC_B64 = (
+    "cXJlcwAAAAMAAARSAAAAGAAAA5oAAAAAAAAA14lQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAA"
+    "c3p69AAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAIlJREFUWIXtzskRgCAQRFFIg1wMwZjEmAiBXEwD"
+    "T1YpsswMy0G7T337TykMw7C/T1/HeGeD0tucaNiPZbUPwCzEPf4CjEbE8SRgFCIVzwJ6I3LxIqAX"
+    "ohSvAloRtTgJIEVQ4mQAF0GNswBUBCfOBtQQ3LgIkENI4mJAjJDGm2e8s8a7+WEMwz61E4SuXy6a"
+    "YvDnAAAAAElFTkSuQmCCAAAA24lQTkcNChoKAAAADUlIRFIAAAAgAAAAIAgGAAAAc3p69AAAAAlw"
+    "SFlzAAAOxAAADsQBlSsOGwAAAI1JREFUWIXtzrENgCAQhWEuDqaFpSOZSMsI7mFpYVxMK0kMAnec"
+    "2PjeAO//jMEwDFNsdLMd3Ww1H40mfhBNhqhr+4H2ddk+A/j4NQVCDAjiSoQIEI0rEGxANl6IYAHY"
+    "8QJEFiCOCxFJQHFcgIgC1HEm4hHwWpyBCACvxzOIG6BaPIHwgOrxBALDMOzfOwFNhWee4tn3ZgAA"
+    "AABJRU5ErkJgggAAAOqJUE5HDQoaCgAAAA1JSERSAAAAIAAAACAIBgAAAHN6evQAAAAJcEhZcwAA"
+    "DsQAAA7EAZUrDhsAAACcSURBVFiF7c4xEkAwEIXh3XEwCqV7OIImM2JGkyPkHkqFcbGoFIjYDVKw"
+    "r9rZ5v8AZDKZ7O/D9VDGaofYJok61/VNrQEAsvU5j8OUlxUCYpEqvgGkQOzjB8CbCF/cC3gDcRY/"
+    "BTyJCMWDgCcQV/FLwB0EJU4CxCCocTKAg+DEWQAKghtnA0KImHgUwIeIjd+eMlYrY9OHZTLZp7YA"
+    "ZdNxKvme22kAAAAASUVORK5CYIIAAADWiVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0"
+    "AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAiElEQVRYhe3OWRWAIBSEYahBFyOYScxEBLpYAx88x+XI"
+    "chfwxZkA83/GYBiGKeZi8C4Gr/mwmngydjlO0rpNswgiAtzj15EMwQbk4hoEC1CLSxFkACUuQZAA"
+    "nDgX0QRI4hxEFaCJUxFFQI84BZEF9Iy3EC/AiHgN8QCMjJcQJ+CLeAmBYRj27+2Ynl8ugsJP9gAA"
+    "AABJRU5ErkJgggADAABz4gBtAGsAMgATD71sJwBhAHIAcgBvAHcAXwBkAG8AdwBuAF8AdABlAGEA"
+    "bAAuAHAAbgBnABINBEWnAGEAcgByAG8AdwBfAHUAcABfAG0AdQB0AGUAZAAuAHAAbgBnABQGk3xH"
+    "AGEAcgByAG8AdwBfAGQAbwB3AG4AXwBtAHUAdABlAGQALgBwAG4AZwARAAR/pwBhAHIAcgBvAHcA"
+    "XwB1AHAAXwB0AGUAYQBsAC4AcABuAGcAAAAAAAIAAAABAAAAAQAAAAAAAAAAAAAAAAACAAAABAAA"
+    "AAIAAAAAAAAAAAAAAJAAAAAAAAEAAAKoAAABofztIMMAAABiAAAAAAABAAABugAAAaH87SDDAAAA"
+    "OAAAAAAAAQAAANsAAAGh/O0gwwAAAAwAAAAAAAEAAAAAAAABofztIMM="
+)
+_RCC_DATA = None  # Referenz halten, solange die Ressource registriert ist
 
 
-def build_stylesheet():
-    a = _arrow_files()
-    return STYLESHEET.replace("ARROW_UP", a["up"]).replace("ARROW_DOWN", a["down"])
+def register_embedded_resources():
+    global _RCC_DATA
+    import base64
+    _RCC_DATA = base64.b64decode(_RCC_B64)
+    QResource.registerResourceData(_RCC_DATA)
 
 
 def resource_path(rel):
@@ -782,8 +792,9 @@ def main():
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
+    register_embedded_resources()
     app.setStyle("Fusion")
-    app.setStyleSheet(build_stylesheet())
+    app.setStyleSheet(STYLESHEET)
     w = MainWindow()
     w.show()
     sys.exit(app.exec())

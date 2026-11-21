@@ -46,25 +46,34 @@ jobs:
           --exclude-module tkinter
           qr_generator.py
 
-      - name: ZIP packen
+      - name: Einzelne exe bereitstellen
         shell: pwsh
         run: |
-          $name = "QR-Code-Generator-MK2-v${{ steps.ver.outputs.version }}-windows"
-          New-Item -ItemType Directory -Force -Path "release/$name" | Out-Null
-          Copy-Item dist/QR-Code-Generator-MK2.exe "release/$name/"
-          Copy-Item README.md "release/$name/"
-          Compress-Archive -Path "release/$name" -DestinationPath "release/$name.zip" -Force
-          # Offline-Build-Kit zusaetzlich als eigene ZIP
-          Compress-Archive -Path offline_build_kit -DestinationPath "release/QR-Code-Generator-MK2-offline-build-kit-v${{ steps.ver.outputs.version }}.zip" -Force
+          $v = "${{ steps.ver.outputs.version }}"
+          New-Item -ItemType Directory -Force -Path release, kit | Out-Null
+          # Nur die eine exe - keine weiteren Dateien daneben
+          Copy-Item dist/QR-Code-Generator-MK2.exe "release/QR-Code-Generator-MK2-v$v-windows.exe"
+          # Offline-Build-Kit separat (nicht Teil des Programms)
+          Compress-Archive -Path offline_build_kit -DestinationPath "kit/QR-Code-Generator-MK2-offline-build-kit-v$v.zip" -Force
+          Get-ChildItem release, kit
 
-      - name: Artefakt hochladen
+      - name: Artefakt hochladen (nur exe)
         uses: actions/upload-artifact@v4
         with:
-          name: QR-Code-Generator-MK2-v${{ steps.ver.outputs.version }}-windows
-          path: release/*.zip
+          name: QR-Code-Generator-MK2-v${{ steps.ver.outputs.version }}-windows-exe
+          path: release/*.exe
+          if-no-files-found: error
+
+      - name: Artefakt hochladen (Offline-Build-Kit)
+        uses: actions/upload-artifact@v4
+        with:
+          name: QR-Code-Generator-MK2-offline-build-kit-v${{ steps.ver.outputs.version }}
+          path: kit/*.zip
 
       - name: GitHub-Release (bei Tag v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: release/*.zip
+          files: |
+            release/*.exe
+            kit/*.zip

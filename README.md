@@ -1,6 +1,6 @@
 # QR-Code-Generator-MK2
 
-**Version 2.0.0**
+**Version 2.0.1**
 
 Eigenständiges Windows-Programm (keine Web-App) zum Erzeugen **möglichst grober QR-Codes** –
 also mit so wenigen Modulen wie möglich, damit jedes einzelne Modul bei gleicher Druck-/Bildgröße
@@ -25,11 +25,15 @@ maximal groß wird. Export als **SVG** (Vektor) und als **Bitmap** (BMP oder PNG
 
 Der Build läuft automatisch über **GitHub Actions** (`.github/workflows/build-exe.yml`):
 
-- Bei jedem Push auf `main`/`master` → ZIP als Artefakt unter *Actions*
-- Bei einem Tag `v*` (z. B. `v1.0.0`) → zusätzlich GitHub-Release mit der ZIP
+- Bei jedem Push auf `main`/`master` → exe als Artefakt unter *Actions*
+- Bei einem Tag `v*` (z. B. `v2.0.1`) → zusätzlich GitHub-Release mit der exe
 
-Die ZIP enthält `QR-Code-Generator-MK2.exe` (einzelne Datei, keine Installation nötig) und diese README.
-Zusätzlich wird das Offline-Build-Kit als eigene ZIP mitgeliefert.
+Ergebnis ist **eine einzige Datei** `QR-Code-Generator-MK2-v<Version>-windows.exe` –
+keine Installation, keine DLLs, Ordner oder Konfigurationsdateien daneben. Icon und
+Oberflächen-Grafiken sind in die exe eingebettet, das Programm legt beim Start keine
+Dateien an. Gespeichert wird nur, was du selbst als SVG/Bitmap exportierst.
+
+Das Offline-Build-Kit wird separat als eigene ZIP bereitgestellt (gehört nicht zum Programm).
 
 ## Offline bauen (ohne GitHub, ohne Internet am Windows-PC)
 
